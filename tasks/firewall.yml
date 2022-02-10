@@ -36,8 +36,7 @@
       [
         '22',
         '80',
-        restund_tcp_listen_port | string,
-        restund_http_status_port | string,
+        restund_tcp_listen_port | string
       ]
       + ([ restund_metrics_listen_port ] if restund_metrics_enabled else [])
       + ([ restund_tls_listen_port ] if (restund_tls_certificate is defined or certbot_enabled) else [])
@@ -54,8 +53,7 @@
   loop: >-
     {{
       [
-        restund_udp_listen_port | string,
-        restund_udp_status_port | string
+        restund_udp_listen_port | string
       ]
       + ([ local_port_range_list.stdout_lines | join(':') ] if local_port_range_list | length > 0 else [])
       + ([ local_port_range_list.stdout_lines | join(':') ] if local_port_range_list | length > 0 else [])
