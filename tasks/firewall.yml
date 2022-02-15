@@ -35,9 +35,9 @@
     {{
       [
         '22',
-        '80',
         restund_tcp_listen_port | string
       ]
+      + ([ '80' ] if certbot_enabled else [])
       + ([ restund_metrics_listen_port ] if restund_metrics_enabled else [])
       + ([ restund_tls_listen_port ] if (restund_tls_certificate is defined or certbot_enabled) else [])
       + ([ local_port_range_list.stdout_lines | join(':') ] if local_port_range_list | length > 0 else [])
