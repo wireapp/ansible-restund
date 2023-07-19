@@ -70,17 +70,32 @@
     state: reloaded
   loop: "{{ restund_allowed_private_network_cidrs }}"
 
+- name: reading IPv6 configuration status
+  slurp:
+    src: '/sys/module/ipv6/parameters/disable'
+  register: 'restund_sys_module_ipv6_disable'
+  # NOTE: incorporate the case of a non-existing src while not appearing as failed task, and
+  #       default to *disabled* (see local variable 'base64_1')
+  failed_when: false
+
 - name: blocking egress to pe-defined private IPv4/IPv6 network ranges
   ufw:
     rule: deny
     direction: out
     to_ip: "{{ item }}"
     state: reloaded
+  vars:
+    base64_1: 'MQo='
+    ipv6_is_disabled: >-
+      {{ restund_sys_module_ipv6_disable.content | default(base64_1) | b64decode | trim | bool }}
   # NOTE: in cases where user-defined list contains the exact same CIDR/IP, this last task would
   #       overwrite allow rules set in previous tasks. This filter makes sure, that there is not
   #       more than one rule for one CIDR/IP
   loop: >-
     {{
-      (restund_blocked_ipv4_network_ranges + restund_blocked_ipv6_network_ranges)
+      (
+          restund_blocked_ipv4_network_ranges
+        + ([] if ipv6_is_disabled else restund_blocked_ipv6_network_ranges)
+      )
       | difference(restund_allowed_private_network_cidrs)
     }}
